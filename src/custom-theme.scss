@@ -1,0 +1,149 @@
+@import "../node_modules/@angular/material/theming";
+
+@include mat-core();
+
+// blue #00729f
+// green #39aa5c
+// yellow #face39
+
+$mat-blue: (
+  50: #09b9fe,
+  100: #01acef,
+  200: #019bd7,
+  300: #028ac0,
+  400: #0279a9,
+  500: #026991,
+  600: #02587a,
+  700: #024863,
+  800: #02374c,
+  900: #012735,
+  A100: #17afba,
+  A200: #159ba5,
+  A400: #10747b,
+  A700: #083a3d,
+  contrast: (
+    50: $black-87-opacity,
+    100: $black-87-opacity,
+    200: $black-87-opacity,
+    300: $black-87-opacity,
+    400: $black-87-opacity,
+    500: white,
+    600: white,
+    700: white,
+    800: $white-87-opacity,
+    900: $white-87-opacity,
+    A100: $black-87-opacity,
+    A200: white,
+    A400: white,
+    A700: white
+  )
+);
+$mat-red1: (
+  50: #fde79f,
+  100: #fce188,
+  200: #fbdc72,
+  300: #fad65c,
+  400: #f9d046,
+  500: #f7ca30,
+  600: #f6c41a,
+  700: #efbb0a,
+  800: #c29809,
+  900: #ab8608,
+  A100: #f8a446,
+  A200: #f79830,
+  A400: #ee820a,
+  A700: #aa5e09,
+  contrast: (
+    50: $black-87-opacity,
+    100: $black-87-opacity,
+    200: $black-87-opacity,
+    300: $black-87-opacity,
+    400: $black-87-opacity,
+    500: white,
+    600: white,
+    700: white,
+    800: $white-87-opacity,
+    900: $white-87-opacity,
+    A100: $black-87-opacity,
+    A200: white,
+    A400: white,
+    A700: white
+  )
+);
+$mat-green: (
+  50: #77d494,
+  100: #66ce86,
+  200: #55c879,
+  300: #44c26b,
+  400: #3cb361,
+  500: #36a157,
+  600: #318f4e,
+  700: #2b7e45,
+  800: #266c3c,
+  900: #205b32,
+  A100: #11c016,
+  A200: #10aa14,
+  A400: #0c7f10,
+  A700: #073f08,
+  contrast: (
+    50: $black-87-opacity,
+    100: $black-87-opacity,
+    200: $black-87-opacity,
+    300: $black-87-opacity,
+    400: $black-87-opacity,
+    500: white,
+    600: white,
+    700: white,
+    800: $white-87-opacity,
+    900: $white-87-opacity,
+    A100: $black-87-opacity,
+    A200: white,
+    A400: white,
+    A700: white
+  )
+);
+$custom-theme-primary: mat-palette($mat-blue);
+$custom-theme-accent: mat-palette($mat-green, A200, A100, A400);
+$custom-theme-warn: mat-palette($mat-red);
+$custom-theme: mat-light-theme(
+  $custom-theme-primary,
+  $custom-theme-accent,
+  $custom-theme-warn
+);
+@include mat-core-theme($custom-theme);
+@include mat-button-theme($custom-theme);
+@include mat-checkbox-theme($custom-theme);
+@include angular-material-theme($custom-theme);
+.mat-warn {
+  color: #222222 !important;
+}
+.mat-accent {
+  // color: #222222 !important;
+}
+/* Rules for sizing the icon. */
+.material-icons.md-18 {
+  font-size: 18px;
+}
+.material-icons.md-24 {
+  font-size: 24px;
+}
+.material-icons.md-36 {
+  font-size: 36px;
+}
+.material-icons.md-48 {
+  font-size: 48px;
+}
+/* Rules for using icons as black on a light background. */
+.material-icons.md-dark {
+  color: rgba(0, 0, 0, 0.54);
+}
+.material-icons.md-dark.md-inactive {
+  color: rgba(0, 0, 0, 0.26);
+}
+/* Rules for using icons as white on a dark background. */
+.material-icons.md-light {
+  color: rgba(255, 255, 255, 1);
+}
+.material-icons.md-light.md-inactive {
+  color: rgba(255, 255, 255, 0.3);
+}

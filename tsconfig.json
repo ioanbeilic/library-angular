@@ -23,6 +23,24 @@
       ],
       "urb-nav-bar/*": [
         "dist/urb-nav-bar/*"
+      ],
+      "users": [
+        "dist/users"
+      ],
+      "users/*": [
+        "dist/users/*"
+      ],
+      "user": [
+        "dist/user"
+      ],
+      "user/*": [
+        "dist/user/*"
+      ],
+      "user-app": [
+        "dist/user-app"
+      ],
+      "user-app/*": [
+        "dist/user-app/*"
       ]
     }
   }
