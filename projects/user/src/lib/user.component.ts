@@ -5,11 +5,13 @@ import {
   MAT_DIALOG_DATA,
   MatDialogRef,
   MatDialog,
-  MatIconRegistry
+  MatIconRegistry,
+  MatDialogConfig
 } from "@angular/material";
 import { FormControl, Validators } from "@angular/forms";
 import { Router } from "@angular/router";
 import { DomSanitizer } from "@angular/platform-browser";
+import { User } from "user/user";
 
 export interface DialogData {
   username: string;
@@ -23,6 +25,7 @@ export interface DialogData {
   <div class="user-content">
     <button mat-icon-button [matMenuTriggerFor]="menu">
       <mat-icon class="md-36">account_circle</mat-icon>
+      <span *ngIf="user">{{ user.name}}</span>
     </button>
     <mat-menu #menu="matMenu">
       <button mat-menu-item>
@@ -33,7 +36,7 @@ export interface DialogData {
         <mat-icon>settings</mat-icon>
         <span>{{'Setting' | translate}}</span>
       </button>
-      <button mat-menu-item>
+      <button mat-menu-item (click)="logOut()">
         <mat-icon>power_settings_new</mat-icon>
         <span>{{'signOut' | translate}}</span>
       </button>
@@ -46,12 +49,14 @@ export interface DialogData {
         padding-right: 20px;
         z-index: 101;
       }
-      .cdk-overlay-container {
+
+      .cdk-overlay-backdrop {
         background-image: url("https://cdn.urbaser.com/img/background/background-1.jpg");
         background-repeat: no-repeat;
         background-size: cover;
         height: 100%;
       }
+      //cdk-overlay-backdrop cdk-overlay-dark-backdrop cdk-overlay-backdrop-showing
     `
   ],
   encapsulation: ViewEncapsulation.None
@@ -99,12 +104,15 @@ export class UserComponent implements OnInit {
   }
 
   logOut() {
-    localStorage.removeItem("token");
+    this.userService.logOut();
     // redirect
   }
 
   async openDialog() {
-    const dialogRef = this.dialog.open(LoginDialog, {
+    const dialogConfig = new MatDialogConfig();
+    dialogConfig.backdropClass = "login-dialog";
+
+    const dialogRef = await this.dialog.open(LoginDialog, {
       width: "600px",
       data: {
         username: this.username,
@@ -129,8 +137,8 @@ export class UserComponent implements OnInit {
 
   <mat-spinner class="loading-spinner" *ngIf="loading" color="accent"></mat-spinner>
 
-  <div *ngIf="errorMessage && !loading" class="alert" color="warn">
-    <mat-icon class="md-36" >warning</mat-icon>
+  <div *ngIf="errorMessage && !loading" class="alert">
+    <mat-icon class="md-36" color="warn" >warning</mat-icon>
     <span *ngIf="error.status == 401 ||error.status == 403 ">
       {{ '401' | translate }}
     </span>
@@ -279,6 +287,8 @@ export class LoginDialog {
   errorMessage: boolean = false;
   error;
 
+  user: User;
+
   constructor(
     public dialogRef: MatDialogRef<LoginDialog>,
     @Inject(MAT_DIALOG_DATA) public data: DialogData,
@@ -324,11 +334,13 @@ export class LoginDialog {
         data => {
           //if server result=true
           if (data.access_token) {
+            this.userService.getProfile(data.access_token).subscribe(data => {
+              localStorage.setItem("currentUser", JSON.stringify(data));
+            });
+
             localStorage.setItem("token", data.access_token);
             localStorage.setItem("refresh_token", data.refresh_token);
             localStorage.setItem("expires_in", data.expires_in);
-            localStorage.setItem("currentUser", JSON.stringify(data.user));
-
             this.loading = true;
             this.dialogRef.close("Confirm");
           }

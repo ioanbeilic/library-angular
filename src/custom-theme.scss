@@ -114,12 +114,6 @@ $custom-theme: mat-light-theme(
 @include mat-button-theme($custom-theme);
 @include mat-checkbox-theme($custom-theme);
 @include angular-material-theme($custom-theme);
-.mat-warn {
-  color: #222222 !important;
-}
-.mat-accent {
-  // color: #222222 !important;
-}
 /* Rules for sizing the icon. */
 .material-icons.md-18 {
   font-size: 18px;

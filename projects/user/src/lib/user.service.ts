@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { loginUrl } from "./api-url";
-import { Observable } from "rxjs";
+import { Observable } from "rxjs"; // important form compile
 
 export interface Auth {
   access_token: string;
@@ -17,11 +17,21 @@ export interface LoginProvides {
 }
 
 export interface User {
-  id?: number;
-  domain?: string;
-  title?: string;
-  name?: string;
-  department?: string;
+  name: string;
+  profile_picture_url: string;
+  language: string;
+  country: string;
+  email: string;
+  applications: [Aplication];
+}
+
+export interface Aplication {
+  id: string;
+  isAdmin: boolean;
+  name: string;
+  appUrl: string;
+  aìUrl: string;
+  imageUrl: string;
 }
 
 @Injectable({
@@ -44,23 +54,28 @@ export class UserService {
       query = "?domain=" + provider.toLowerCase();
     }
 
-    return this.http.post<any>(loginUrl + query, {
+    return this.http.post<Auth>(loginUrl + query, {
       username: username,
       password: password
     });
+  }
+
+  getProfile(token) {
+    return this.http.get<LoginProvides>(loginUrl + "/providers");
   }
 
   // logOut not used from the moment
   // all client are redirect
   logOut() {
     localStorage.removeItem("token");
-    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("expires_in");
     localStorage.removeItem("currentUser");
 
     window.location.href = "/";
   }
 
   getLoginProviders() {
-    return this.http.get<any>(loginUrl + "/providers");
+    return this.http.get<LoginProvides>(loginUrl + "/providers");
   }
 }
