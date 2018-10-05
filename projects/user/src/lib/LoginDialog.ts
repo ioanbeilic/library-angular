@@ -1,127 +1,14 @@
-import { Component, OnInit, Inject, ViewEncapsulation } from "@angular/core";
-import { TranslateService } from "@ngx-translate/core";
+import { Component, Inject, ViewEncapsulation } from "@angular/core";
 import { UserService } from "./user.service";
 import {
   MAT_DIALOG_DATA,
   MatDialogRef,
-  MatDialog,
   MatIconRegistry
 } from "@angular/material";
 import { FormControl, Validators } from "@angular/forms";
-import { Router } from "@angular/router";
 import { DomSanitizer } from "@angular/platform-browser";
-
-export interface DialogData {
-  username: string;
-  password: string;
-  provider: string;
-}
-
-@Component({
-  selector: "lib-user",
-  template: `
-  <div class="user-content">
-    <button mat-icon-button [matMenuTriggerFor]="menu">
-      <mat-icon class="md-36">account_circle</mat-icon>
-    </button>
-    <mat-menu #menu="matMenu">
-      <button mat-menu-item>
-        <mat-icon>perm_identity</mat-icon>
-        <span>{{'Profile' | translate}}</span>
-      </button>
-      <button mat-menu-item>
-        <mat-icon>settings</mat-icon>
-        <span>{{'Setting' | translate}}</span>
-      </button>
-      <button mat-menu-item>
-        <mat-icon>power_settings_new</mat-icon>
-        <span>{{'signOut' | translate}}</span>
-      </button>
-    </mat-menu>
-  </div>
-  `,
-  styles: [
-    `
-      .user-content {
-        padding-right: 20px;
-        z-index: 101;
-      }
-      .cdk-overlay-container {
-        background-image: url("https://cdn.urbaser.com/img/background/background-1.jpg");
-        background-repeat: no-repeat;
-        background-size: cover;
-        height: 100%;
-      }
-    `
-  ],
-  encapsulation: ViewEncapsulation.None
-})
-export class UserComponent implements OnInit {
-  token: string;
-  username: string;
-  password: string;
-  provider: string;
-
-  translation = [
-    { setting: "Setting" },
-    { signOut: "Sign Out" },
-    { profule: "Profile" },
-    { username: "User Name" },
-    { usernameRequireError: "usernameRequireError" },
-    { requiredFild: "This fild is required" },
-    { login: "Login" },
-    { send: "Send" },
-    { 401: "Wrong Username or Password " }
-  ];
-  constructor(
-    public translateService: TranslateService,
-    public userService: UserService,
-    public dialog: MatDialog
-  ) {
-    if (!localStorage.getItem("language")) {
-      localStorage.setItem("language", "es");
-    }
-
-    this.translateService.setDefaultLang(localStorage.getItem("language"));
-    this.translateService.use(localStorage.getItem("language"));
-  }
-
-  async ngOnInit() {
-    this.token = await localStorage.getItem("token");
-
-    if (!this.token) {
-      await this.openDialog();
-      // setTimeout(() => this.dialog.open(LoginDialog), 0);
-    }
-    if (this.token) {
-      await this.userService.validate();
-    }
-  }
-
-  logOut() {
-    localStorage.removeItem("token");
-    // redirect
-  }
-
-  async openDialog() {
-    const dialogRef = this.dialog.open(LoginDialog, {
-      width: "600px",
-      data: {
-        username: this.username,
-        password: this.password,
-        provider: this.provider
-      }
-    });
-
-    await dialogRef.afterClosed().subscribe(result => {
-      // console.log(result);
-      // window.location.href = loginUrl;
-    });
-  }
-}
-
+import { DialogData } from "./user.component";
 /////////////////////////////////////////////////////////////////////////////////////////////
-
 @Component({
   selector: "login-dialog",
   template: `
@@ -278,7 +165,6 @@ export class LoginDialog {
   activeSocialLogin: boolean = true;
   errorMessage: boolean = false;
   error;
-
   constructor(
     public dialogRef: MatDialogRef<LoginDialog>,
     @Inject(MAT_DIALOG_DATA) public data: DialogData,
@@ -302,19 +188,15 @@ export class LoginDialog {
       "linkedin",
       sanitizer.bypassSecurityTrustResourceUrl("assets/img/linkedin.svg")
     );
-
     userService.getLoginProviders().subscribe(data => {
       this.providers = data;
     });
-
     // remove click-out to close
     this.dialogRef.disableClose = true;
   }
-
   async onLogin() {
     this.loading = true;
     await this.userService
-
       .signIn(
         this.userFormControl.value,
         this.passwordFormControl.value,
@@ -328,7 +210,6 @@ export class LoginDialog {
             localStorage.setItem("refresh_token", data.refresh_token);
             localStorage.setItem("expires_in", data.expires_in);
             localStorage.setItem("currentUser", JSON.stringify(data.user));
-
             this.loading = true;
             this.dialogRef.close("Confirm");
           }
@@ -340,7 +221,6 @@ export class LoginDialog {
         }
       );
   }
-
   onNoClick(): void {
     //this.dialogRef.close();
   }

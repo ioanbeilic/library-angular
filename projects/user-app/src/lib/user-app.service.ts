@@ -2,8 +2,8 @@ import { Injectable } from "@angular/core";
 import { HttpHeaders, HttpClient } from "@angular/common/http";
 import { Router } from "@angular/router";
 import { App } from "./user-app.component";
-import { apiUrl } from "src/api-url";
 import { Subject } from "rxjs";
+import { apiUrl } from "./api-url";
 
 export interface Apps {
   apps: App[];
@@ -23,9 +23,9 @@ export class UserAppService {
   constructor(private http: HttpClient, private router: Router) {}
 
   getApps() {
-    return this.http.get<Apps>(apiUrl + "apis", {
-      headers: this.headers
-    });
+    // return this.http.get<Apps>(apiUrl + "apis", {
+    // headers: this.headers
+    // });
   }
 
   checkPermision(app: App) {
@@ -40,7 +40,7 @@ export class UserAppService {
             observe: "response"
           })
           .subscribe(async res => {
-            console.log(res.headers.get("Status Code"));
+            //console.log(res.headers.get("Status Code"));
 
             this.statusCode.next(res.headers.get("Status Code"));
 

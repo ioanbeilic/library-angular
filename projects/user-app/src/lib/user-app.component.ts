@@ -82,8 +82,10 @@ export class UserAppComponent implements OnInit {
   constructor(private userAppService: UserAppService) {}
 
   ngOnInit() {
+    /*
     this.userAppService.getApps().subscribe(data => {
       this.apps = data.apps;
     });
+  */
   }
 }

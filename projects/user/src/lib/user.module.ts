@@ -1,11 +1,16 @@
 import { NgModule } from "@angular/core";
 import { UserComponent, LoginDialog } from "./user.component";
 import { MaterialModule } from "./material.module";
-import { HttpClient, HttpClientModule } from "@angular/common/http";
+import {
+  HttpClient,
+  HttpClientModule,
+  HTTP_INTERCEPTORS
+} from "@angular/common/http";
 
 import { TranslateHttpLoader } from "@ngx-translate/http-loader";
 import { TranslateModule, TranslateLoader } from "@ngx-translate/core";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { HttpErrorInterceptor } from "./request-interceptor";
 
 export function createTranslateLoader(http: HttpClient) {
   return new TranslateHttpLoader(
@@ -32,6 +37,13 @@ export function createTranslateLoader(http: HttpClient) {
         deps: [HttpClient]
       }
     })
+  ],
+  providers: [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: HttpErrorInterceptor,
+      multi: true
+    }
   ],
   declarations: [UserComponent, LoginDialog],
   exports: [UserComponent],

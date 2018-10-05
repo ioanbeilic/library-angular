@@ -1,12 +1,19 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { loginUrl } from "src/api-url";
+import { loginUrl } from "./api-url";
+import { Observable } from "rxjs";
 
-interface Auth {
+export interface Auth {
   access_token: string;
   refresh_token: string;
   expires_in: string;
   user: User;
+}
+export interface LoginProvides {
+  Name: string;
+  Type: string;
+  Domain: string;
+  DomainUrlIcon: string;
 }
 
 export interface User {
@@ -25,36 +32,22 @@ export class UserService {
   constructor(private http: HttpClient) {}
 
   validate() {
-    let token = localStorage.getItem("token");
+    // let token = localStorage.getItem("token");
   }
 
-  signin(username: string, password: string, domain: string) {
-    // console.log(JSON.stringify({ username: username, password: password }));
+  signIn(username: string, password: string, provider: string) {
+    let query: string;
 
-    return this.http
-      .post<Auth>(loginUrl + domain, {
-        username: username,
-        password: password
-      })
-      .subscribe(
-        data => {
-          //if server result=true
-          if (data.access_token) {
-            localStorage.setItem("token", data.access_token);
-            localStorage.setItem("refresh_token", data.refresh_token);
-            localStorage.setItem("expires_in", data.expires_in);
-            localStorage.setItem("currentUser", JSON.stringify(data.user));
+    if (provider == undefined || provider == null || provider == "") {
+      query = "";
+    } else {
+      query = "?domain=" + provider.toLowerCase();
+    }
 
-            // decript token -- not userd for the moment
-            let base64Url = data.access_token.split(".")[1];
-            let base64 = base64Url.replace("-", "+").replace("_", "/");
-            this.d_token = JSON.parse(window.atob(base64));
-            //------------------------------------------------
-            //console.log(this.d_token);
-          }
-        },
-        error => {}
-      );
+    return this.http.post<any>(loginUrl + query, {
+      username: username,
+      password: password
+    });
   }
 
   // logOut not used from the moment
@@ -65,5 +58,9 @@ export class UserService {
     localStorage.removeItem("currentUser");
 
     window.location.href = "/";
+  }
+
+  getLoginProviders() {
+    return this.http.get<any>(loginUrl + "/providers");
   }
 }
