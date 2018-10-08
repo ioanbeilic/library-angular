@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
-import { loginUrl } from "./api-url";
+import { HttpClient, HttpHeaders } from "@angular/common/http";
+import { loginUrl, profileUrl } from "./api-url";
 import { Observable } from "rxjs"; // important form compile
 
 export interface Auth {
@@ -34,17 +34,30 @@ export interface Aplication {
   imageUrl: string;
 }
 
+export interface AppToken {
+  token: string;
+  refresh_token: string;
+  expire_in: string;
+}
+
 @Injectable({
   providedIn: "root"
 })
 export class UserService {
   d_token: string; // decripted token
+  headers = new HttpHeaders().append(
+    "Authorization",
+    localStorage.getItem("token")
+  );
+
   constructor(private http: HttpClient) {}
 
-  validate() {
-    // let token = localStorage.getItem("token");
-  }
-
+  /**
+   * login user
+   * @param username
+   * @param password
+   * @param provider
+   */
   signIn(username: string, password: string, provider: string) {
     let query: string;
 
@@ -59,9 +72,58 @@ export class UserService {
       password: password
     });
   }
+  /**
+   * send refresh token to server
+   * @param expired_token
+   */
+  refrehToken(expired_token) {
+    //  GET /v1/login/refresh
+    let newHeaders = new HttpHeaders().append(
+      "Authorization",
+      "Bearer " + expired_token
+    );
+    return this.http.get<AppToken>(
+      loginUrl + "/refresh/" + localStorage.getItem("refresh_token"),
+      {
+        headers: newHeaders
+      }
+    );
+  }
 
+  /**
+   * send a valid global token and app id to generate token
+   * token sended with header
+   * @param token
+   * @param appId
+   */
+  getAppToken(token, appId) {
+    /**
+     * asign token to new heders and send the app id to generate token
+     */
+    let newHeaders = new HttpHeaders().append(
+      "Authorization",
+      "Bearer " + token
+    );
+    return this.http.get<AppToken>(loginUrl + "/application/" + appId, {
+      headers: newHeaders
+    });
+  }
+
+  /**
+   *
+   * @param token
+   * het profalie from base token an sav to current user on local storage
+   */
   getProfile(token) {
-    return this.http.get<LoginProvides>(loginUrl + "/providers");
+    let newHeaders = new HttpHeaders().append(
+      "Authorization",
+      "Bearer " + token
+    );
+    console.log(newHeaders);
+    console.log(profileUrl);
+    return this.http.get<LoginProvides>(profileUrl, {
+      headers: newHeaders
+    });
   }
 
   // logOut not used from the moment

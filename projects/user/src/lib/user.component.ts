@@ -1,17 +1,18 @@
 import { Component, OnInit, Inject, ViewEncapsulation } from "@angular/core";
 import { TranslateService } from "@ngx-translate/core";
-import { UserService } from "./user.service";
+import { UserService, User } from "./user.service";
 import {
   MAT_DIALOG_DATA,
   MatDialogRef,
   MatDialog,
   MatIconRegistry,
-  MatDialogConfig
+  MatDialogConfig,
+  MatSnackBar
 } from "@angular/material";
 import { FormControl, Validators } from "@angular/forms";
 import { Router } from "@angular/router";
 import { DomSanitizer } from "@angular/platform-browser";
-import { User } from "user/user";
+import { transition } from "@angular/animations";
 
 export interface DialogData {
   username: string;
@@ -25,17 +26,16 @@ export interface DialogData {
   <div class="user-content">
     <button mat-icon-button [matMenuTriggerFor]="menu">
       <mat-icon class="md-36">account_circle</mat-icon>
-      <span *ngIf="user">{{ user.name}}</span>
     </button>
     <mat-menu #menu="matMenu">
-      <button mat-menu-item>
+      <a href="#" mat-menu-item>
         <mat-icon>perm_identity</mat-icon>
         <span>{{'Profile' | translate}}</span>
-      </button>
-      <button mat-menu-item>
+      </a>
+      <a href="#" mat-menu-item>
         <mat-icon>settings</mat-icon>
         <span>{{'Setting' | translate}}</span>
-      </button>
+      </a>
       <button mat-menu-item (click)="logOut()">
         <mat-icon>power_settings_new</mat-icon>
         <span>{{'signOut' | translate}}</span>
@@ -66,6 +66,13 @@ export class UserComponent implements OnInit {
   username: string;
   password: string;
   provider: string;
+  appName: string;
+  appId: string;
+  appToken: string;
+  refreshToken: string;
+  expireIn: number;
+  validTimeToken: number;
+  currentUser: User;
 
   translation = [
     { setting: "Setting" },
@@ -76,8 +83,11 @@ export class UserComponent implements OnInit {
     { requiredFild: "This fild is required" },
     { login: "Login" },
     { send: "Send" },
-    { 401: "Wrong Username or Password " }
+    { "401": " Wrong Username or Password " },
+    { "403": " Wrong Username or Password " },
+    { "500": " Server error, try again later " }
   ];
+
   constructor(
     public translateService: TranslateService,
     public userService: UserService,
@@ -92,15 +102,93 @@ export class UserComponent implements OnInit {
   }
 
   async ngOnInit() {
+    // get local token
     this.token = await localStorage.getItem("token");
+
+    // get local datta aplication
+    this.appName = await localStorage.getItem("appName"); // needed
+    this.appId = await localStorage.getItem("appId"); // needed
+
+    this.appToken = await localStorage.getItem("token_" + this.appName);
+
+    this.refreshToken = await localStorage.getItem(
+      "refresh_token_" + this.appName
+    );
+
+    // if exist app token check if is expired
+    if (this.appToken) {
+      this.expireIn = await parseInt(
+        localStorage.getItem("expire_in_" + this.appName)
+      );
+
+      let getTime = new Date().getTime();
+      this.validTimeToken = this.expireIn - getTime;
+    }
+
+    if (!this.appToken) {
+      /**
+       * if app dont have token
+       * check if master token is active
+       * if no uss refresh token to generate a new one
+       * after that generate app token
+       */
+      this.expireIn = await parseInt(localStorage.getItem("expire_in"));
+      /**
+       * get token expired date
+       */
+      let getTime = new Date().getTime();
+      /**
+       * get current time as timestamp
+       */
+      this.validTimeToken = this.expireIn - getTime;
+      /**
+       * rest curent time for all validity time
+       * if time is <= 0 generate new toke
+       * susing async for waiting
+       */
+      if (this.validTimeToken <= 0) {
+        console.log("generando un nuevo token");
+      }
+
+      /**
+       * if token is valid get the app token
+       */
+
+      this.userService
+        .getAppToken(this.token, this.appId)
+        .subscribe(async data => {
+          await localStorage.setItem("token_" + this.appName, data.token);
+          await localStorage.setItem(
+            "refresh_token_" + this.appName,
+            data.refresh_token
+          );
+          await localStorage.setItem(
+            "expire_in" + this.appName,
+            data.expire_in
+          );
+        });
+    }
+
+    /**
+     * if dont exist app id -- ??
+     * if dont exist token open login
+     */
 
     if (!this.token) {
       await this.openDialog();
       // setTimeout(() => this.dialog.open(LoginDialog), 0);
     }
+
+    /**
+     * if token exist -- validate
+     * removed
+     */
+    /*
     if (this.token) {
       await this.userService.validate();
     }
+    */
+    this.currentUser = JSON.parse(localStorage.getItem("currentUser"));
   }
 
   logOut() {
@@ -109,17 +197,28 @@ export class UserComponent implements OnInit {
   }
 
   async openDialog() {
+    /**
+     * new instance of dialod
+     */
     const dialogConfig = new MatDialogConfig();
     dialogConfig.backdropClass = "login-dialog";
 
     const dialogRef = await this.dialog.open(LoginDialog, {
       width: "600px",
+      /**
+       * passing parameters to dialog
+       */
       data: {
         username: this.username,
         password: this.password,
         provider: this.provider
       }
     });
+
+    /**
+     * action after close dialog
+     * fiture implemantation
+     */
 
     await dialogRef.afterClosed().subscribe(result => {
       // console.log(result);
@@ -128,7 +227,7 @@ export class UserComponent implements OnInit {
   }
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////// modal component
 
 @Component({
   selector: "login-dialog",
@@ -137,13 +236,7 @@ export class UserComponent implements OnInit {
 
   <mat-spinner class="loading-spinner" *ngIf="loading" color="accent"></mat-spinner>
 
-  <div *ngIf="errorMessage && !loading" class="alert">
-    <mat-icon class="md-36" color="warn" >warning</mat-icon>
-    <span *ngIf="error.status == 401 ||error.status == 403 ">
-      {{ '401' | translate }}
-    </span>
-  </div>
-
+ 
   <div class="login-modal" *ngIf="!loading">
 
       <form  (submit)="onLogin()" class="login-form" style="flex:50;">
@@ -187,7 +280,7 @@ export class UserComponent implements OnInit {
       </form>
 
 
-      <mat-list class="social-login" style="flex:50;" role="list">
+      <mat-list *ngIf="activeSocialLogin" class="social-login" style="flex:50;" role="list">
         <mat-list-item class="social-login-items" role="listitem">
           <button class="social-login-btn" mat-button style="background-color:#DD4B39">
             <mat-icon svgIcon="google+"></mat-icon>
@@ -265,6 +358,23 @@ export class UserComponent implements OnInit {
         display: block;
         margin: 0 auto;
       }
+      .error-msg {
+        display: block;
+        margin: 0 auto;
+      }
+      .error-snackbar {
+        //background: rgba(255, 0, 0, 0.7);
+        font-size: 1rem;
+        color: #f7ca30;
+      }
+
+      .error-snackbar button {
+        position: absolute;
+        right: 0;
+        bootom: 0;
+        min-height: 100%;
+        font-size: 1.5rem;
+      }
 
       @media only screen and (max-width: 590px) {
         .social-login {
@@ -283,7 +393,7 @@ export class LoginDialog {
   provider: string;
   //
   loading: boolean = false;
-  activeSocialLogin: boolean = true;
+  activeSocialLogin: boolean = true; // hide social login
   errorMessage: boolean = false;
   error;
 
@@ -294,8 +404,13 @@ export class LoginDialog {
     @Inject(MAT_DIALOG_DATA) public data: DialogData,
     iconRegistry: MatIconRegistry,
     sanitizer: DomSanitizer,
-    public userService: UserService
+    public userService: UserService,
+    public snackBar: MatSnackBar,
+    public translateService: TranslateService
   ) {
+    /**
+     * register svg icon for socvial network
+     */
     iconRegistry.addSvgIcon(
       "facebook",
       sanitizer.bypassSecurityTrustResourceUrl("assets/img/facebook.svg")
@@ -313,6 +428,11 @@ export class LoginDialog {
       sanitizer.bypassSecurityTrustResourceUrl("assets/img/linkedin.svg")
     );
 
+    /**
+     * get proveder from the server fro select box
+     * on html is foltred using corporate fild
+     *
+     */
     userService.getLoginProviders().subscribe(data => {
       this.providers = data;
     });
@@ -320,6 +440,10 @@ export class LoginDialog {
     // remove click-out to close
     this.dialogRef.disableClose = true;
   }
+
+  /**
+   * asybc login waiting to load data from server
+   */
 
   async onLogin() {
     this.loading = true;
@@ -331,29 +455,57 @@ export class LoginDialog {
         this.providerFormControl.value
       )
       .subscribe(
-        data => {
+        async data => {
           //if server result=true
           if (data.access_token) {
-            this.userService.getProfile(data.access_token).subscribe(data => {
-              localStorage.setItem("currentUser", JSON.stringify(data));
-            });
+            await this.userService
+              .getProfile(data.access_token)
+              .subscribe(data => {
+                console.log(data);
+                localStorage.setItem("currentUser", JSON.stringify(data));
+              });
 
-            localStorage.setItem("token", data.access_token);
-            localStorage.setItem("refresh_token", data.refresh_token);
-            localStorage.setItem("expires_in", data.expires_in);
+            /**
+             * store local data to server
+             * remove loader and close dialog
+             */
+
+            await localStorage.setItem("token", data.access_token);
+            await localStorage.setItem("refresh_token", data.refresh_token);
+            await localStorage.setItem("expires_in", data.expires_in);
             this.loading = true;
-            this.dialogRef.close("Confirm");
+            await this.dialogRef.close("Confirm");
           }
         },
         error => {
+          /**
+           * if server error open snackbar
+           */
           this.error = error;
           this.loading = false;
           this.errorMessage = true;
+          this.openSnackBar(error.status, "x");
         }
       );
   }
 
   onNoClick(): void {
     //this.dialogRef.close();
+  }
+  /**
+   * action close the snack bar
+   * message waitin the translation from the server for 401, 403 code
+   * incorect username or password
+   */
+
+  openSnackBar(code: number, action: string) {
+    if (code == 401 || code == 403) {
+      this.translateService.get("401").subscribe((data: string) => {
+        this.snackBar.open(data, action, {
+          duration: 9000,
+          panelClass: ["error-snackbar"]
+        });
+      });
+    }
   }
 }

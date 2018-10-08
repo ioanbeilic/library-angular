@@ -141,3 +141,7 @@ $custom-theme: mat-light-theme(
 .material-icons.md-light.md-inactive {
   color: rgba(255, 255, 255, 0.3);
 }
+::ng-deep .mat-simple-snackbar {
+  background-color: #c00003;
+  color: white;
+}
