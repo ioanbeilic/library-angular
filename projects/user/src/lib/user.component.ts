@@ -56,6 +56,29 @@ export interface DialogData {
         background-size: cover;
         height: 100%;
       }
+
+      div > .login-modal {
+        -webkit-box-shadow: 99px 97px 158px -8px rgba(34, 34, 34, 1);
+        -moz-box-shadow: 99px 97px 158px -8px rgba(34, 34, 34, 1);
+        box-shadow: 99px 97px 158px -8px rgba(34, 34, 34, 1);
+
+        background: url("https://cdn.urbaser.com/img/background/logo.svg")
+          no-repeat center center;
+        background-size: 350px;
+        background-position: 50% 50px;
+      }
+
+      .login-modal > .mat-dialog-container {
+        background: inherit !important;
+        box-shadow: inset 0 0 0 900px rgba(255, 255, 255, 0.7);
+        //opacity: 0.5;
+      }
+
+      .login-modal {
+        -webkit-border-radius: 5px;
+        -moz-border-radius: 5px;
+        border-radius: 5px;
+      }
       //cdk-overlay-backdrop cdk-overlay-dark-backdrop cdk-overlay-backdrop-showing
     `
   ],
@@ -73,6 +96,8 @@ export class UserComponent implements OnInit {
   expireIn: number;
   validTimeToken: number;
   currentUser: User;
+  error;
+  errorMessage;
 
   translation = [
     { setting: "Setting" },
@@ -91,7 +116,8 @@ export class UserComponent implements OnInit {
   constructor(
     public translateService: TranslateService,
     public userService: UserService,
-    public dialog: MatDialog
+    public dialog: MatDialog,
+    public snackBar: MatSnackBar
   ) {
     if (!localStorage.getItem("language")) {
       localStorage.setItem("language", "es");
@@ -104,6 +130,11 @@ export class UserComponent implements OnInit {
   async ngOnInit() {
     // get local token
     this.token = await localStorage.getItem("token");
+    this.refreshToken = await localStorage.getItem("refresh_token");
+
+    if (this.token) {
+      await this.userService.checkToken(this.token);
+    }
 
     // get local datta aplication
     this.appName = await localStorage.getItem("appName"); // needed
@@ -111,60 +142,16 @@ export class UserComponent implements OnInit {
 
     this.appToken = await localStorage.getItem("token_" + this.appName);
 
-    this.refreshToken = await localStorage.getItem(
-      "refresh_token_" + this.appName
-    );
-
-    // if exist app token check if is expired
-    if (this.appToken) {
-      this.expireIn = await parseInt(
-        localStorage.getItem("expire_in_" + this.appName)
-      );
-
-      let getTime = new Date().getTime();
-      this.validTimeToken = this.expireIn - getTime;
-    }
-
     if (!this.appToken) {
-      /**
-       * if app dont have token
-       * check if master token is active
-       * if no uss refresh token to generate a new one
-       * after that generate app token
-       */
-      this.expireIn = await parseInt(localStorage.getItem("expire_in"));
-      /**
-       * get token expired date
-       */
-      let getTime = new Date().getTime();
-      /**
-       * get current time as timestamp
-       */
-      this.validTimeToken = this.expireIn - getTime;
-      /**
-       * rest curent time for all validity time
-       * if time is <= 0 generate new toke
-       * susing async for waiting
-       */
-      if (this.validTimeToken <= 0) {
-        console.log("generando un nuevo token");
-      }
-
       /**
        * if token is valid get the app token
        */
-
       this.userService
         .getAppToken(this.token, this.appId)
         .subscribe(async data => {
-          await localStorage.setItem("token_" + this.appName, data.token);
           await localStorage.setItem(
-            "refresh_token_" + this.appName,
-            data.refresh_token
-          );
-          await localStorage.setItem(
-            "expire_in" + this.appName,
-            data.expire_in
+            "token_" + this.appName,
+            data.access_token
           );
         });
     }
@@ -179,16 +166,13 @@ export class UserComponent implements OnInit {
       // setTimeout(() => this.dialog.open(LoginDialog), 0);
     }
 
-    /**
-     * if token exist -- validate
-     * removed
-     */
-    /*
-    if (this.token) {
-      await this.userService.validate();
-    }
-    */
     this.currentUser = JSON.parse(localStorage.getItem("currentUser"));
+
+    this.userService.error.subscribe(data => {
+      this.error = data.error;
+      this.errorMessage = true;
+      //this.openSnackBar(data.error.status, "x");
+    });
   }
 
   logOut() {
@@ -205,6 +189,7 @@ export class UserComponent implements OnInit {
 
     const dialogRef = await this.dialog.open(LoginDialog, {
       width: "600px",
+      // panelClass: "login-modal",
       /**
        * passing parameters to dialog
        */
@@ -232,16 +217,20 @@ export class UserComponent implements OnInit {
 @Component({
   selector: "login-dialog",
   template: `
-  <mat-toolbar class="login-modal-toolbar" color="primary"> {{ 'login' | translate }}</mat-toolbar>
+
+
+  
+  <h3>{{ 'login' | translate }}</h3>
+
+  <hr>
 
   <mat-spinner class="loading-spinner" *ngIf="loading" color="accent"></mat-spinner>
-
  
   <div class="login-modal" *ngIf="!loading">
 
       <form  (submit)="onLogin()" class="login-form" style="flex:50;">
         <mat-form-field class="login-full-width">
-          <input matInput placeholder="{{'username' | translate}}" name="username" [formControl]="userFormControl">
+          <input autocomplete="new-email" matInput placeholder="{{'username' | translate}}" name="username" [formControl]="userFormControl">
           <mat-error *ngIf="userFormControl.hasError('user') && !userFormControl.hasError('required')">
             {{ 'usernameRequireError' | translate}}
           </mat-error>
@@ -251,7 +240,7 @@ export class UserComponent implements OnInit {
 
         </mat-form-field>
           <mat-form-field class="login-full-width">
-          <input type="password" matInput placeholder="{{'password' | translate}}" name="password" [formControl]="passwordFormControl">
+          <input autocomplete="new-password" type="password" matInput placeholder="{{'password' | translate}}" name="password" [formControl]="passwordFormControl">
           <mat-error *ngIf="passwordFormControl.hasError('email') && !passwordFormControl.hasError('required')">
             {{ 'passwardRequireError' | translate}}
           </mat-error>
@@ -317,6 +306,7 @@ export class UserComponent implements OnInit {
         display: flex;
         flex-wrap: wrap;
         overflow: hidden;
+        margin-top: 20px;
       }
 
       .login-form {
@@ -472,7 +462,7 @@ export class LoginDialog {
 
             await localStorage.setItem("token", data.access_token);
             await localStorage.setItem("refresh_token", data.refresh_token);
-            await localStorage.setItem("expires_in", data.expires_in);
+
             this.loading = true;
             await this.dialogRef.close("Confirm");
           }
@@ -502,7 +492,7 @@ export class LoginDialog {
     if (code == 401 || code == 403) {
       this.translateService.get("401").subscribe((data: string) => {
         this.snackBar.open(data, action, {
-          duration: 9000,
+          duration: 90000,
           panelClass: ["error-snackbar"]
         });
       });

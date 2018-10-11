@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { loginUrl, profileUrl } from "./api-url";
-import { Observable } from "rxjs"; // important form compile
+import { Observable, Subject } from "rxjs"; // important form compile
 
 export interface Auth {
   access_token: string;
@@ -35,16 +35,26 @@ export interface Aplication {
 }
 
 export interface AppToken {
-  token: string;
+  access_token: string;
   refresh_token: string;
   expire_in: string;
+}
+
+export interface DescriptedToken {
+  applicationId: string;
+  aud: string;
+  exp: number;
+  iat: number;
+  nbf: number;
+  role: string;
 }
 
 @Injectable({
   providedIn: "root"
 })
 export class UserService {
-  d_token: string; // decripted token
+  d_token: DescriptedToken; // decripted token
+  error = new Subject<any>();
   headers = new HttpHeaders().append(
     "Authorization",
     localStorage.getItem("token")
@@ -66,7 +76,6 @@ export class UserService {
     } else {
       query = "?domain=" + provider.toLowerCase();
     }
-
     return this.http.post<Auth>(loginUrl + query, {
       username: username,
       password: password
@@ -77,13 +86,14 @@ export class UserService {
    * @param expired_token
    */
   refrehToken(expired_token) {
-    //  GET /v1/login/refresh
     let newHeaders = new HttpHeaders().append(
       "Authorization",
       "Bearer " + expired_token
     );
     return this.http.get<AppToken>(
-      loginUrl + "/refresh/" + localStorage.getItem("refresh_token"),
+      loginUrl +
+        "/refresh?refresh_token=" +
+        localStorage.getItem("refresh_token"),
       {
         headers: newHeaders
       }
@@ -97,6 +107,7 @@ export class UserService {
    * @param appId
    */
   getAppToken(token, appId) {
+    // this.checkToken(token);
     /**
      * asign token to new heders and send the app id to generate token
      */
@@ -115,12 +126,13 @@ export class UserService {
    * het profalie from base token an sav to current user on local storage
    */
   getProfile(token) {
+    this.checkToken(token);
     let newHeaders = new HttpHeaders().append(
       "Authorization",
       "Bearer " + token
     );
-    console.log(newHeaders);
-    console.log(profileUrl);
+    // for console.log
+
     return this.http.get<LoginProvides>(profileUrl, {
       headers: newHeaders
     });
@@ -139,5 +151,54 @@ export class UserService {
 
   getLoginProviders() {
     return this.http.get<LoginProvides>(loginUrl + "/providers");
+  }
+
+  async checkToken(token) {
+    console.log(token);
+    /**
+     * decripted token
+     * expire date
+     */
+    if (token) {
+      let base64Url = token.split(".")[1];
+      let base64 = base64Url.replace("-", "+").replace("_", "/");
+      this.d_token = JSON.parse(window.atob(base64));
+
+      let now = new Date().getTime() / 1000;
+
+      let timeLeft = Number(this.d_token.exp) - Math.ceil(Number(now));
+
+      if (timeLeft <= 10) {
+        console.log(timeLeft);
+        // refrest token
+        this.refrehToken(token).subscribe(
+          async data => {
+            //if server result=true
+            if (data) {
+              await this.getProfile(data.access_token).subscribe(data => {
+                localStorage.setItem("currentUser", JSON.stringify(data));
+              });
+
+              /**
+               * store local data to server
+               * remove loader and close dialog
+               */
+              await localStorage.setItem("token", data.access_token);
+              await localStorage.setItem("refresh_token", data.refresh_token);
+              console.log(
+                "new token created - old: " + token + "  new: data.access_token"
+              );
+            }
+          },
+          error => {
+            /**
+             * if server error open snackbar form login component
+             */
+            // this.error.next(error);
+            // this.logOut();
+          }
+        );
+      }
+    }
   }
 }

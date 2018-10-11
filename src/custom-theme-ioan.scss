@@ -6,21 +6,21 @@
 // green #39aa5c
 // yellow #face39
 
-$mat-blue: (
-  50: #e1edf2,
-  100: #b3d2de,
-  200: #81b4c8,
-  300: #4e96b2,
-  400: #2880a2,
-  500: #026991,
-  600: #026189,
-  700: #01567e,
-  800: #014c74,
-  900: #013b62,
-  A100: #92cbff,
-  A200: #5fb3ff,
-  A400: #2c9bff,
-  A700: #138fff,
+$mat-primary: (
+  50: #e0ecf6,
+  100: #b3d1e9,
+  200: #80b2da,
+  300: #4d93cb,
+  400: #267bc0,
+  500: #0064b5,
+  600: #005cae,
+  700: #0052a5,
+  800: #00489d,
+  900: #00368d,
+  A100: #b9cfff,
+  A200: #86abff,
+  A400: #5388ff,
+  A700: #3a76ff,
   contrast: (
     50: #000000,
     100: #000000,
@@ -38,21 +38,53 @@ $mat-blue: (
     A700: #ffffff
   )
 );
-$mat-red1: (
-  50: #fef9e6,
-  100: #fdefc1,
-  200: #fbe598,
-  300: #f9da6e,
-  400: #f8d24f,
-  500: #f7ca30,
-  600: #f6c52b,
-  700: #f5bd24,
-  800: #f3b71e,
-  900: #f1ab13,
+$mat-accent: (
+  50: #e2f5e0,
+  100: #b7e6b3,
+  200: #87d680,
+  300: #57c64d,
+  400: #33b926,
+  500: #0fad00,
+  600: #0da600,
+  700: #0b9c00,
+  800: #089300,
+  900: #048300,
+  A100: #b0ffb0,
+  A200: #7dff7d,
+  A400: #4aff4a,
+  A700: #30ff30,
+  contrast: (
+    50: #000000,
+    100: #000000,
+    200: #000000,
+    300: #000000,
+    400: #000000,
+    500: #ffffff,
+    600: #ffffff,
+    700: #ffffff,
+    800: #ffffff,
+    900: #ffffff,
+    A100: #000000,
+    A200: #000000,
+    A400: #000000,
+    A700: #000000
+  )
+);
+$mat-accent1: (
+  50: #fff3e0,
+  100: #ffe0b3,
+  200: #ffcc80,
+  300: #ffb84d,
+  400: #ffa826,
+  500: #ff9900,
+  600: #ff9100,
+  700: #ff8600,
+  800: #ff7c00,
+  900: #ff6b00,
   A100: #ffffff,
-  A200: #fff9ec,
-  A400: #ffe7b9,
-  A700: #ffdea0,
+  A200: #fff7f2,
+  A400: #ffd6bf,
+  A700: #ffc6a6,
   contrast: (
     50: #000000,
     100: #000000,
@@ -70,26 +102,26 @@ $mat-red1: (
     A700: #000000
   )
 );
-$mat-green: (
-  50: #e4e7e4,
-  100: #bac4bd,
-  200: #8d9d91,
-  300: #5f7564,
-  400: #3c5843,
-  500: #1a3a22,
-  600: #17341e,
-  700: #132c19,
-  800: #0f2514,
-  900: #08180c,
-  A100: #44b85d,
-  A200: #23ab40,
-  A400: #1a9a32,
-  A700: #0c801c,
+$mat-warn: (
+  50: #ffe0e0,
+  100: #ffb3b3,
+  200: #ff8080,
+  300: #ff4d4d,
+  400: #ff2626,
+  500: #ff0000,
+  600: #ff0000,
+  700: #ff0000,
+  800: #ff0000,
+  900: #ff0000,
+  A100: #ffffff,
+  A200: #fff2f2,
+  A400: #ffbfbf,
+  A700: #ffa6a6,
   contrast: (
     50: #000000,
     100: #000000,
     200: #000000,
-    300: #ffffff,
+    300: #000000,
     400: #ffffff,
     500: #ffffff,
     600: #ffffff,
@@ -102,9 +134,9 @@ $mat-green: (
     A700: #000000
   )
 );
-$custom-theme-primary: mat-palette($mat-blue);
-$custom-theme-accent: mat-palette($mat-green, A200, A100, A400);
-$custom-theme-warn: mat-palette($mat-red);
+$custom-theme-primary: mat-palette($mat-primary);
+$custom-theme-accent: mat-palette($mat-accent);
+$custom-theme-warn: mat-palette($mat-warn);
 $custom-theme: mat-light-theme(
   $custom-theme-primary,
   $custom-theme-accent,
@@ -145,4 +177,12 @@ $custom-theme: mat-light-theme(
 ::ng-deep .mat-simple-snackbar {
   background-color: #c00003;
   color: white;
+}
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: "Roboto", sans-serif;
 }

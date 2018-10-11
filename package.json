@@ -10,6 +10,7 @@
     "e2e": "ng e2e",
     "build_nav_lib": "ng build --prod urb-nav-bar",
     "npm_pack_nav": "cd dist/urb-nav-bar && npm pack",
+    "npm_pack_user": "cd dist/user && npm pack",
     "package": "npm run build_nav_lib && npm run npm_pack_nav"
   },
   "private": true,
