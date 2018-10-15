@@ -37,13 +37,21 @@ export class AddHeaderInterceptor implements HttpInterceptor {
     next: HttpHandler
   ): Observable<HttpEvent<any>> {
     // Clone the request to add the new header
-
-    let app = localStorage.getItem("currentApp");
-    let appToken = localStorage.getItem("token_" + app);
-    console.log(appToken + "from interceptor");
-    const clonedRequest = req.clone({
-      headers: req.headers.set("Authorization", "Bearer " + appToken)
-    });
+    let token = localStorage.getItem("token");
+    let clonedRequest;
+    if (token) {
+      console.log(token);
+      let appName = localStorage.getItem("currentApp");
+      let appToken = localStorage.getItem("token_" + appName);
+      if (appToken) {
+        console.log(appToken);
+        clonedRequest = req.clone({
+          headers: req.headers.set("Authorization", "Bearer " + appToken)
+        });
+      }
+    } else {
+      clonedRequest = req.clone();
+    }
 
     // Pass the cloned request instead of the original request to the next handle
     return next.handle(clonedRequest);

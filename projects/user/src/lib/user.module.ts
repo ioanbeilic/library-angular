@@ -10,7 +10,10 @@ import {
 import { TranslateHttpLoader } from "@ngx-translate/http-loader";
 import { TranslateModule, TranslateLoader } from "@ngx-translate/core";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
-import { HttpErrorInterceptor } from "./request-interceptor";
+import {
+  HttpErrorInterceptor,
+  AddHeaderInterceptor
+} from "./request-interceptor";
 
 export function createTranslateLoader(http: HttpClient) {
   return new TranslateHttpLoader(
@@ -42,6 +45,11 @@ export function createTranslateLoader(http: HttpClient) {
     {
       provide: HTTP_INTERCEPTORS,
       useClass: HttpErrorInterceptor,
+      multi: true
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AddHeaderInterceptor,
       multi: true
     }
   ],

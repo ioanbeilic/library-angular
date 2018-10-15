@@ -163,8 +163,6 @@ export class UserComponent implements OnInit {
        */
       this.currentUser = JSON.parse(localStorage.getItem("currentUser"));
 
-      console.log(this.currentUser);
-
       if (this.currentUser) {
         console.log("current user");
         await this.currentUser.applications.map(async app => {
