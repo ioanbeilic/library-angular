@@ -29,3 +29,23 @@ export class HttpErrorInterceptor implements HttpInterceptor {
     );
   }
 }
+
+// send app token to header
+export class AddHeaderInterceptor implements HttpInterceptor {
+  intercept(
+    req: HttpRequest<any>,
+    next: HttpHandler
+  ): Observable<HttpEvent<any>> {
+    // Clone the request to add the new header
+
+    let app = localStorage.getItem("currentApp");
+    let appToken = localStorage.getItem("token_" + app);
+    console.log(appToken + "from interceptor");
+    const clonedRequest = req.clone({
+      headers: req.headers.set("Authorization", "Bearer " + appToken)
+    });
+
+    // Pass the cloned request instead of the original request to the next handle
+    return next.handle(clonedRequest);
+  }
+}

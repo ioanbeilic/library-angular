@@ -13,6 +13,7 @@ export interface test {
   styleUrls: ["./app.component.scss"]
 })
 export class AppComponent {
+  alias = "holidays";
   title = "nav-bar";
 
   test: test[] = [

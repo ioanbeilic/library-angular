@@ -22,15 +22,15 @@ export interface User {
   language: string;
   country: string;
   email: string;
-  applications: [Aplication];
+  applications: [Application];
 }
 
-export interface Aplication {
+export interface Application {
   id: string;
   isAdmin: boolean;
-  name: string;
+  alias: string;
   appUrl: string;
-  aìUrl: string;
+  apiUrl: string;
   imageUrl: string;
 }
 
@@ -111,6 +111,7 @@ export class UserService {
     /**
      * asign token to new heders and send the app id to generate token
      */
+
     let newHeaders = new HttpHeaders().append(
       "Authorization",
       "Bearer " + token
@@ -141,11 +142,14 @@ export class UserService {
   // logOut not used from the moment
   // all client are redirect
   logOut() {
+    let currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    currentUser.applications.map(async app => {
+      localStorage.removeItem("token_" + app.alias);
+    });
+
     localStorage.removeItem("token");
     localStorage.removeItem("refresh_token");
-    localStorage.removeItem("expires_in");
     localStorage.removeItem("currentUser");
-
     window.location.href = "/";
   }
 
@@ -154,7 +158,6 @@ export class UserService {
   }
 
   async checkToken(token) {
-    console.log(token);
     /**
      * decripted token
      * expire date
@@ -195,7 +198,7 @@ export class UserService {
              * if server error open snackbar form login component
              */
             // this.error.next(error);
-            // this.logOut();
+            this.logOut();
           }
         );
       }

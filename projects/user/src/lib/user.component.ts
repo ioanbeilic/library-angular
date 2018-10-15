@@ -1,4 +1,10 @@
-import { Component, OnInit, Inject, ViewEncapsulation } from "@angular/core";
+import {
+  Component,
+  OnInit,
+  Inject,
+  ViewEncapsulation,
+  Input
+} from "@angular/core";
 import { TranslateService } from "@ngx-translate/core";
 import { UserService, User } from "./user.service";
 import {
@@ -85,6 +91,10 @@ export interface DialogData {
   encapsulation: ViewEncapsulation.None
 })
 export class UserComponent implements OnInit {
+  // recive apiname to generate token
+  @Input()
+  alias: string;
+
   token: string;
   username: string;
   password: string;
@@ -131,29 +141,52 @@ export class UserComponent implements OnInit {
     // get local token
     this.token = await localStorage.getItem("token");
     this.refreshToken = await localStorage.getItem("refresh_token");
-
-    if (this.token) {
-      await this.userService.checkToken(this.token);
-    }
+    localStorage.setItem("currentApp", this.alias);
 
     // get local datta aplication
-    this.appName = await localStorage.getItem("appName"); // needed
-    this.appId = await localStorage.getItem("appId"); // needed
+    //this.alias = await localStorage.getItem("alias"); // needed
+    //this.appId = await localStorage.getItem("appId"); // needed
 
-    this.appToken = await localStorage.getItem("token_" + this.appName);
+    this.appToken = await localStorage.getItem("token_" + this.alias);
+
+    if (this.token && !this.appToken) {
+      await this.userService.checkToken(this.token);
+    }
+    if (this.token && this.appToken) {
+      await this.userService.checkToken(this.appToken);
+    }
 
     if (!this.appToken) {
       /**
        * if token is valid get the app token
+       *
        */
+      this.currentUser = JSON.parse(localStorage.getItem("currentUser"));
+
+      console.log(this.currentUser);
+
+      if (this.currentUser) {
+        console.log("current user");
+        await this.currentUser.applications.map(async app => {
+          if (app.alias == this.alias) {
+            await this.userService
+              .getAppToken(this.token, app.id)
+              .subscribe(async data => {
+                await localStorage.setItem(
+                  "token_" + this.alias,
+                  data.access_token
+                );
+              });
+          }
+        });
+      }
+      /*
       this.userService
         .getAppToken(this.token, this.appId)
         .subscribe(async data => {
-          await localStorage.setItem(
-            "token_" + this.appName,
-            data.access_token
-          );
+          await localStorage.setItem("token_" + this.alias, data.access_token);
         });
+        */
     }
 
     /**
@@ -165,8 +198,6 @@ export class UserComponent implements OnInit {
       await this.openDialog();
       // setTimeout(() => this.dialog.open(LoginDialog), 0);
     }
-
-    this.currentUser = JSON.parse(localStorage.getItem("currentUser"));
 
     this.userService.error.subscribe(data => {
       this.error = data.error;
@@ -403,19 +434,27 @@ export class LoginDialog {
      */
     iconRegistry.addSvgIcon(
       "facebook",
-      sanitizer.bypassSecurityTrustResourceUrl("assets/img/facebook.svg")
+      sanitizer.bypassSecurityTrustResourceUrl(
+        "https://cdn.urbaser.com/img/icons/facebook.svg"
+      )
     );
     iconRegistry.addSvgIcon(
       "google+",
-      sanitizer.bypassSecurityTrustResourceUrl("assets/img/google-plus.svg")
+      sanitizer.bypassSecurityTrustResourceUrl(
+        "https://cdn.urbaser.com/img/icons/google-plus.svg"
+      )
     );
     iconRegistry.addSvgIcon(
       "twitter",
-      sanitizer.bypassSecurityTrustResourceUrl("assets/img/twitter.svg")
+      sanitizer.bypassSecurityTrustResourceUrl(
+        "https://cdn.urbaser.com/img/icons/twitter.svg"
+      )
     );
     iconRegistry.addSvgIcon(
       "linkedin",
-      sanitizer.bypassSecurityTrustResourceUrl("assets/img/linkedin.svg")
+      sanitizer.bypassSecurityTrustResourceUrl(
+        "https://cdn.urbaser.com/img/icons/linkedin.svg"
+      )
     );
 
     /**
@@ -451,7 +490,6 @@ export class LoginDialog {
             await this.userService
               .getProfile(data.access_token)
               .subscribe(data => {
-                console.log(data);
                 localStorage.setItem("currentUser", JSON.stringify(data));
               });
 
@@ -492,7 +530,7 @@ export class LoginDialog {
     if (code == 401 || code == 403) {
       this.translateService.get("401").subscribe((data: string) => {
         this.snackBar.open(data, action, {
-          duration: 90000,
+          duration: 5000,
           panelClass: ["error-snackbar"]
         });
       });
