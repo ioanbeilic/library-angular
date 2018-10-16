@@ -60,6 +60,8 @@ export class UserService {
     localStorage.getItem("token")
   );
 
+  refreshAppToken = new Subject();
+
   constructor(private http: HttpClient) {}
 
   /**
@@ -132,9 +134,8 @@ export class UserService {
       "Authorization",
       "Bearer " + token
     );
-    // for console.log
 
-    return this.http.get<LoginProvides>(profileUrl, {
+    return this.http.get<User>(profileUrl, {
       headers: newHeaders
     });
   }
@@ -203,5 +204,9 @@ export class UserService {
         );
       }
     }
+  }
+
+  getAppTokenFirstLogin(data: User) {
+    this.refreshAppToken.next(data);
   }
 }

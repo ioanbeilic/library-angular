@@ -19,6 +19,7 @@ import { FormControl, Validators } from "@angular/forms";
 import { Router } from "@angular/router";
 import { DomSanitizer } from "@angular/platform-browser";
 import { transition } from "@angular/animations";
+import { async } from "@angular/core/testing";
 
 export interface DialogData {
   username: string;
@@ -109,20 +110,6 @@ export class UserComponent implements OnInit {
   error;
   errorMessage;
 
-  translation = [
-    { setting: "Setting" },
-    { signOut: "Sign Out" },
-    { profule: "Profile" },
-    { username: "User Name" },
-    { usernameRequireError: "usernameRequireError" },
-    { requiredFild: "This fild is required" },
-    { login: "Login" },
-    { send: "Send" },
-    { "401": " Wrong Username or Password " },
-    { "403": " Wrong Username or Password " },
-    { "500": " Server error, try again later " }
-  ];
-
   constructor(
     public translateService: TranslateService,
     public userService: UserService,
@@ -135,13 +122,29 @@ export class UserComponent implements OnInit {
 
     this.translateService.setDefaultLang(localStorage.getItem("language"));
     this.translateService.use(localStorage.getItem("language"));
+
+    translateService.setTranslation("es", {
+      setting: "Setting",
+      signOut: "Sign Out",
+      profule: "Profile",
+      username: "User Name",
+      usernameRequireError: "usernameRequireError",
+      requiredFild: "This fild is required",
+      login: "Login",
+      send: "Send",
+      401: " Wrong Username or Password ",
+      403: " Wrong Username or Password ",
+      500: " Server error, try again later "
+    });
   }
 
   async ngOnInit() {
     // get local token
+
+    localStorage.setItem("currentApp", this.alias);
+
     this.token = await localStorage.getItem("token");
     this.refreshToken = await localStorage.getItem("refresh_token");
-    localStorage.setItem("currentApp", this.alias);
 
     // get local datta aplication
     //this.alias = await localStorage.getItem("alias"); // needed
@@ -156,12 +159,13 @@ export class UserComponent implements OnInit {
       await this.userService.checkToken(this.appToken);
     }
 
+    this.currentUser = JSON.parse(localStorage.getItem("currentUser"));
+
     if (!this.appToken) {
       /**
        * if token is valid get the app token
        *
        */
-      this.currentUser = JSON.parse(localStorage.getItem("currentUser"));
 
       if (this.currentUser) {
         console.log("current user");
@@ -237,6 +241,22 @@ export class UserComponent implements OnInit {
     await dialogRef.afterClosed().subscribe(result => {
       // console.log(result);
       // window.location.href = loginUrl;
+    });
+
+    // on first login get current app token
+    this.userService.refreshAppToken.subscribe(async data => {
+      data["applications"].map(async app => {
+        if (app.alias == this.alias) {
+          await this.userService
+            .getAppToken(this.token, app.id)
+            .subscribe(async data => {
+              await localStorage.setItem(
+                "token_" + this.alias,
+                data.access_token
+              );
+            });
+        }
+      });
     });
   }
 }
@@ -466,6 +486,20 @@ export class LoginDialog {
 
     // remove click-out to close
     this.dialogRef.disableClose = true;
+
+    translateService.setTranslation("es", {
+      setting: "Setting",
+      signOut: "Sign Out",
+      profule: "Profile",
+      username: "User Name",
+      usernameRequireError: "usernameRequireError",
+      requiredFild: "This fild is required",
+      login: "Login",
+      send: "Send",
+      401: " Wrong Username or Password ",
+      403: " Wrong Username or Password ",
+      500: " Server error, try again later "
+    });
   }
 
   /**
@@ -489,6 +523,7 @@ export class LoginDialog {
               .getProfile(data.access_token)
               .subscribe(data => {
                 localStorage.setItem("currentUser", JSON.stringify(data));
+                this.userService.getAppTokenFirstLogin(data);
               });
 
             /**

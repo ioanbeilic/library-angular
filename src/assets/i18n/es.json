@@ -1,0 +1,13 @@
+{
+  "setting": "Setting",
+  "signOut": "Sign Out",
+  "profule": "Profile",
+  "username": "User Name",
+  "usernameRequireError": "usernameRequireError",
+  "requiredFild": "This fild is required",
+  "login": "Login",
+  "send": "Send",
+  "401": " Wrong Username or Password ",
+  "403": " Wrong Username or Password ",
+  "500": " Server error, try again later "
+}

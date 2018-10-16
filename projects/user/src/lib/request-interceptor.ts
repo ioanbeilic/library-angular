@@ -40,13 +40,16 @@ export class AddHeaderInterceptor implements HttpInterceptor {
     let token = localStorage.getItem("token");
     let clonedRequest;
     if (token) {
-      console.log(token);
       let appName = localStorage.getItem("currentApp");
       let appToken = localStorage.getItem("token_" + appName);
       if (appToken) {
         console.log(appToken);
         clonedRequest = req.clone({
           headers: req.headers.set("Authorization", "Bearer " + appToken)
+        });
+      } else {
+        clonedRequest = req.clone({
+          headers: req.headers.set("Authorization", "Bearer " + token)
         });
       }
     } else {

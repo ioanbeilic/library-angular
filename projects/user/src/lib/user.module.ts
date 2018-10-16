@@ -14,18 +14,19 @@ import {
   HttpErrorInterceptor,
   AddHeaderInterceptor
 } from "./request-interceptor";
-
+/*
 export function createTranslateLoader(http: HttpClient) {
-  return new TranslateHttpLoader(
-    http,
-    /*
-    `http://desarrollo.urbaser.com/Intranet/OrgChart/organization-chart-`,
-    ".json"
-    */
-    `https://devintranet.urbaser.com/urbaserws/translate/organization-chart-`,
-    ".json"
-  );
+  return new TranslateHttpLoader(http);
+  // return new TranslateHttpLoader(http, "./i18n/", ".json");
+ 
+ // return new TranslateHttpLoader(
+ //   http,
+ //   `http://desarrollo.urbaser.com/Intranet/OrgChart/organization-chart-`,
+ //   ".json"
+ //  );
+ 
 }
+*/
 
 @NgModule({
   imports: [
@@ -33,6 +34,8 @@ export function createTranslateLoader(http: HttpClient) {
     HttpClientModule,
     FormsModule,
     ReactiveFormsModule,
+    TranslateModule.forRoot()
+    /*
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
@@ -40,6 +43,7 @@ export function createTranslateLoader(http: HttpClient) {
         deps: [HttpClient]
       }
     })
+    */
   ],
   providers: [
     {
