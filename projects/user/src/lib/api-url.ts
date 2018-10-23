@@ -7,3 +7,5 @@ export const loginAppUrl =
 
 export const profileUrl =
   "https://desarrollo.urbaser.com/account-api/v1/profiles/current";
+export const translationUrl =
+  "https://devintranet.urbaser.com/UrbaserWS/api/CMS/";

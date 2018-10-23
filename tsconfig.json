@@ -41,6 +41,12 @@
       ],
       "user-app/*": [
         "dist/user-app/*"
+      ],
+      "calendar": [
+        "dist/calendar"
+      ],
+      "calendar/*": [
+        "dist/calendar/*"
       ]
     }
   }

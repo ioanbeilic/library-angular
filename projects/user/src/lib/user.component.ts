@@ -19,7 +19,6 @@ import { FormControl, Validators } from "@angular/forms";
 import { Router } from "@angular/router";
 import { DomSanitizer } from "@angular/platform-browser";
 import { transition } from "@angular/animations";
-import { async } from "@angular/core/testing";
 
 export interface DialogData {
   username: string;
@@ -57,13 +56,27 @@ export interface DialogData {
         z-index: 101;
       }
 
-      .cdk-overlay-backdrop {
+      .modal-bg {
+        position: absolute;
+        background-image: url("https://cdn.urbaser.com/img/background/background-1.jpg");
+        background-repeat: no-repeat;
+        background-size: cover;
+        height: 100%;
+        top: 0;
+        left: 0;
+        owerflow: hidden;
+        z-index: -10;
+        width: 100%;
+        //height: 110vh;
+      }
+      /*
+      .cdk-overlay-dark-backdrop {
         background-image: url("https://cdn.urbaser.com/img/background/background-1.jpg");
         background-repeat: no-repeat;
         background-size: cover;
         height: 100%;
       }
-
+*/
       div > .login-modal {
         -webkit-box-shadow: 99px 97px 158px -8px rgba(34, 34, 34, 1);
         -moz-box-shadow: 99px 97px 158px -8px rgba(34, 34, 34, 1);
@@ -117,25 +130,20 @@ export class UserComponent implements OnInit {
     public snackBar: MatSnackBar
   ) {
     if (!localStorage.getItem("language")) {
-      localStorage.setItem("language", "es");
+      localStorage.setItem("language", "es-es");
     }
 
     this.translateService.setDefaultLang(localStorage.getItem("language"));
     this.translateService.use(localStorage.getItem("language"));
-
-    translateService.setTranslation("es", {
-      setting: "Setting",
-      signOut: "Sign Out",
-      profule: "Profile",
-      username: "User Name",
-      usernameRequireError: "usernameRequireError",
-      requiredFild: "This fild is required",
-      login: "Login",
-      send: "Send",
-      401: " Wrong Username or Password ",
-      403: " Wrong Username or Password ",
-      500: " Server error, try again later "
-    });
+    //load translation from server
+    this.userService
+      .getTranslation(localStorage.getItem("language"))
+      .subscribe(async data => {
+        translateService.setTranslation(
+          localStorage.getItem("language"),
+          await data
+        );
+      });
   }
 
   async ngOnInit() {
@@ -168,7 +176,6 @@ export class UserComponent implements OnInit {
        */
 
       if (this.currentUser) {
-        console.log("current user");
         await this.currentUser.applications.map(async app => {
           if (app.alias == this.alias) {
             await this.userService
@@ -222,6 +229,7 @@ export class UserComponent implements OnInit {
 
     const dialogRef = await this.dialog.open(LoginDialog, {
       width: "600px",
+      backdropClass: "modal-bg",
       // panelClass: "login-modal",
       /**
        * passing parameters to dialog
@@ -284,7 +292,7 @@ export class UserComponent implements OnInit {
             {{ 'usernameRequireError' | translate}}
           </mat-error>
           <mat-error *ngIf="userFormControl.hasError('required')">
-          {{ 'requiredFild' | translate}}
+          {{ 'requiredField' | translate}}
           </mat-error>
 
         </mat-form-field>
@@ -294,7 +302,7 @@ export class UserComponent implements OnInit {
             {{ 'passwardRequireError' | translate}}
           </mat-error>
           <mat-error *ngIf="passwordFormControl.hasError('required')">
-          {{ 'requiredFild' | translate}}
+          {{ 'requiredField' | translate}}
           </mat-error>
         </mat-form-field>
 
@@ -486,20 +494,6 @@ export class LoginDialog {
 
     // remove click-out to close
     this.dialogRef.disableClose = true;
-
-    translateService.setTranslation("es", {
-      setting: "Setting",
-      signOut: "Sign Out",
-      profule: "Profile",
-      username: "User Name",
-      usernameRequireError: "usernameRequireError",
-      requiredFild: "This fild is required",
-      login: "Login",
-      send: "Send",
-      401: " Wrong Username or Password ",
-      403: " Wrong Username or Password ",
-      500: " Server error, try again later "
-    });
   }
 
   /**

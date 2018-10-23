@@ -9,6 +9,7 @@ import { MaterialModule } from "./material.module";
 import { UrbNavBarModule } from "projects/urb-nav-bar/src/public_api";
 import { UserModule } from "projects/user/src/public_api";
 import { UserAppModule } from "projects/user-app/src/public_api";
+import { CalendarModule } from "projects/calendar/src/public_api";
 
 @NgModule({
   declarations: [AppComponent],
@@ -19,7 +20,8 @@ import { UserAppModule } from "projects/user-app/src/public_api";
     MaterialModule,
     UrbNavBarModule,
     UserModule,
-    UserAppModule
+    UserAppModule,
+    CalendarModule
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   providers: [],

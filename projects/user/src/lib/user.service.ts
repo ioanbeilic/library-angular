@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { HttpClient, HttpHeaders } from "@angular/common/http";
-import { loginUrl, profileUrl } from "./api-url";
+import { loginUrl, profileUrl, translationUrl } from "./api-url";
 import { Observable, Subject } from "rxjs"; // important form compile
 
 export interface Auth {
@@ -173,7 +173,7 @@ export class UserService {
       let timeLeft = Number(this.d_token.exp) - Math.ceil(Number(now));
 
       if (timeLeft <= 10) {
-        console.log(timeLeft);
+        // console.log(timeLeft);
         // refrest token
         this.refrehToken(token).subscribe(
           async data => {
@@ -189,9 +189,6 @@ export class UserService {
                */
               await localStorage.setItem("token", data.access_token);
               await localStorage.setItem("refresh_token", data.refresh_token);
-              console.log(
-                "new token created - old: " + token + "  new: data.access_token"
-              );
             }
           },
           error => {
@@ -208,5 +205,11 @@ export class UserService {
 
   getAppTokenFirstLogin(data: User) {
     this.refreshAppToken.next(data);
+  }
+
+  getTranslation(lang) {
+    // console.log(lang);
+    // return this.http.get(translationUrl + lang);
+    return this.http.get(translationUrl + lang);
   }
 }
